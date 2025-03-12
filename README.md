@@ -1,5 +1,7 @@
 # my-vue
 
+![alt text](image.png)
+
 ## Project setup
 ```
 yarn install
