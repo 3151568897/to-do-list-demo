@@ -4,8 +4,8 @@
       <h1>ToDoList</h1>
     </div>
     <form @submit.prevent="addTodo" style="text-align: center">
-      <input type="text" v-model="newTodo" placeholder="添加待办事项" />
-      <button type="submit">提交</button>
+      <el-input style="width: 260px" type="text" v-model="newTodo" placeholder="添加待办事项"></el-input>
+      <el-button type="primary" native-type="submit">提交</el-button>
     </form>
 <!--用flex布局1-->
     <div style="display: flex; margin-left: 30px; margin-right: 30px">
@@ -14,11 +14,11 @@
           <h2>正在进行 ({{ pendingTodos.length }})</h2>
         </div>
         <ul>
-          <li v-for="(todo, index) in pendingTodos" :key="index">
-            {{ todo.text }}
-            <button @click="completeTodo(index)">完成</button>
-            <button @click="deletePendingTodo(index)">删除</button>
-            <button @click="modifyTodo(index)">修改</button>
+          <li class="pendingLi" v-for="(todo, index) in pendingTodos" :key="index">
+            <span>{{ todo.text }}</span>
+            <button @click="completeTodo(index)"></button>
+            <button @click="deletePendingTodo(index)"></button>
+            <button @click="modifyTodo(index)"></button>
           </li>
         </ul>
       </div>
@@ -30,9 +30,9 @@
           <h2>已完成 ({{ completedTodos.length }})</h2>
         </div>
         <ul>
-          <li v-for="(todo, index) in completedTodos" :key="index">
+          <li class="completedLi" v-for="(todo, index) in completedTodos" :key="index">
             {{ todo.text }}
-            <button @click="deleteTodo(index)">删除</button>
+            <button @click="deleteTodo(index)"></button>
           </li>
         </ul>
       </div>
@@ -89,7 +89,21 @@ export default {
     modifyTodo(index){
       let todo = this.pendingTodos[index]
       let idx = this.todos.findIndex(t=>t.text === todo.text)
-      console.log(idx)
+      this.$prompt('请输入修改后的ToDoList', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+      }).then(({ value }) => {
+        this.$message({
+          type: 'success',
+          message: '修改后的ToDoList是: ' + value
+        });
+        this.todos[idx].text=value;
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '取消输入'
+        });
+      });
     }
   },
 };
@@ -109,5 +123,84 @@ ul {
 
 li {
   margin-bottom: 0.5em;
+}
+
+ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  /* 列表项样式 */
+  position: relative;
+  list-style: none;
+  width: calc(33.33% - 8px); /* 三列布局 */
+  height: 20px;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+
+  /* 文字布局 */
+  display: flex;
+  align-items: center;
+
+}
+
+li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(108,92,231,0.15);
+  border-color: #6c5ce7;
+}
+
+/* 按钮容器 */
+li button {
+  opacity: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: auto; /* 按钮靠右 */
+}
+
+li:hover button {
+  opacity: 1;
+}
+
+/* 按钮图标 */
+button::after {
+  font-family: Arial;
+  font-weight: bold;
+}
+.pendingLi button:nth-child(2)::after { content: '✓'; color: #6c5ce7; } /* 完成 */
+.pendingLi button:nth-child(3)::after { content: '×'; color: #ff7675; } /* 删除 */
+.pendingLi button:nth-child(4)::after { content: '✎'; color: #00b894; } /* 修改 */
+.completedLi button:nth-child(1)::after { content: '×'; color: #ff7675; } /* 修改 */
+
+
+/* 按钮悬停效果 */
+button:hover {
+  background: #6c5ce7 !important;
+  transform: scale(1.1);
+}
+button:hover::after {
+  color: white !important;
+}
+
+/* 文字区域 */
+li span {
+  flex: 1;
+  padding-right: 8px;
+  font-size: 16px;
+  color: #2d3436;
+  word-break: break-word;
 }
 </style>
