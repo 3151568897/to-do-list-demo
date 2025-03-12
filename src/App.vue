@@ -1,41 +1,43 @@
 <template>
-  <div id="app">
-    <div class="todo-container">
-      <h1>Todo List</h1>
-      <div class="input-section">
-        <input
-            type="text"
-            v-model="newTodo"
-            @keyup.enter="addTodo"
-            placeholder="输入新任务..."
-            class="todo-input"
-        >
-        <button @click="addTodo" class="add-btn">添加</button>
-      </div>
-
-      <div class="todo-list">
-        <div
-            v-for="todo in filteredTodos"
-            :key="todo.id"
-            class="todo-item"
-            :class="{ completed: todo.completed }"
-        >
-          <input
-              type="checkbox"
-              v-model="todo.completed"
-              class="checkbox"
-          >
-          <span class="todo-text">{{ todo.text }}</span>
-          <button @click="removeTodo(todo.id)" class="delete-btn">×</button>
+  <div class="todo-list">
+    <div style="text-align: left ; background: linear-gradient(to right, #87CEEB, #cccccc); color: white">
+      <h1>ToDoList</h1>
+    </div>
+    <form @submit.prevent="addTodo" style="text-align: center">
+      <input type="text" v-model="newTodo" placeholder="添加待办事项" />
+      <button type="submit">提交</button>
+    </form>
+<!--用flex布局1-->
+    <div style="display: flex; margin-left: 30px; margin-right: 30px">
+      <div style="flex: 50%">
+        <div style="background: linear-gradient(to right, #87CEEB, #cccccc); color: white;">
+          <h2>正在进行 ({{ pendingTodos.length }})</h2>
         </div>
+        <ul>
+          <li v-for="(todo, index) in pendingTodos" :key="index">
+            {{ todo.text }}
+            <button @click="completeTodo(index)">完成</button>
+            <button @click="deletePendingTodo(index)">删除</button>
+            <button @click="modifyTodo(index)">修改</button>
+          </li>
+        </ul>
       </div>
 
-      <div class="filter-buttons">
-        <button @click="filter = 'all'" :class="{ active: filter === 'all' }">全部</button>
-        <button @click="filter = 'active'" :class="{ active: filter === 'active' }">未完成</button>
-        <button @click="filter = 'completed'" :class="{ active: filter === 'completed' }">已完成</button>
+      <div style="flex: 10%"></div>
+
+      <div style="flex: 50%">
+        <div style="background: linear-gradient(to right, #87CEEB, #cccccc); color: white;">
+          <h2>已完成 ({{ completedTodos.length }})</h2>
+        </div>
+        <ul>
+          <li v-for="(todo, index) in completedTodos" :key="index">
+            {{ todo.text }}
+            <button @click="deleteTodo(index)">删除</button>
+          </li>
+        </ul>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -44,147 +46,68 @@ export default {
   data() {
     return {
       newTodo: '',
-      todos: [],
-      filter: 'all'
-    }
+      todos: [
+         { text: '学习 Vue.js', completed: false },
+         { text: '完成项目', completed: true },
+      ],
+    };
   },
   computed: {
-    filteredTodos() {
-      switch (this.filter) {
-        case 'active':
-          return this.todos.filter(t => !t.completed)
-        case 'completed':
-          return this.todos.filter(t => t.completed)
-        default:
-          return this.todos
-      }
-    }
+    pendingTodos() {
+      return this.todos.filter(todo => !todo.completed);
+    },
+    completedTodos() {
+      return this.todos.filter(todo => todo.completed);
+    },
   },
   methods: {
     addTodo() {
-      if (this.newTodo.trim()) {
-        this.todos.push({
-          id: Date.now(),
-          text: this.newTodo.trim(),
-          completed: false
-        })
-        this.newTodo = ''
+      if (this.newTodo.trim() !== '') {
+        this.todos.push({ text: this.newTodo, completed: false });
+        this.newTodo = '';
       }
     },
-    removeTodo(id) {
-      this.todos = this.todos.filter(t => t.id !== id)
+    completeTodo(index) {
+      // this.todos[index].completed = true;
+      // 改成下面这种，通过pendingTodos计算属性来更新视图
+      let todo = this.pendingTodos[index]
+      let idx = this.todos.findIndex(t=>t.text === todo.text)
+      this.todos[idx].completed = true;
+    },
+    deletePendingTodo(index){
+      let todo = this.pendingTodos[index]
+      let idx = this.todos.findIndex(t=>t.text === todo.text)
+      this.todos.splice(idx,1)
+    },
+    //删除已完成
+    deleteTodo(index){
+      let todo = this.completedTodos[index]
+      let idx = this.todos.findIndex(t=>t.text === todo.text)
+      this.todos.splice(idx,1)
+    },
+    //修改todolist
+    modifyTodo(index){
+      let todo = this.pendingTodos[index]
+      let idx = this.todos.findIndex(t=>t.text === todo.text)
+      console.log(idx)
     }
-  }
-}
+  },
+};
 </script>
 
-<style>
-#app {
-  max-width: 600px;
-  margin: 20px auto;
-  padding: 20px;
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-}
-
-.todo-container {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-h1 {
-  color: #2c3e50;
-  text-align: center;
-  margin-bottom: 25px;
-}
-
-.input-section {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.todo-input {
-  flex: 1;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 16px;
-}
-
-.add-btn {
-  padding: 10px 20px;
-  background: #42b983;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.add-btn:hover {
-  background: #3aa876;
-}
-
+<style scoped>
+/* 在这里添加样式，美化你的 TodoList */
 .todo-list {
-  margin-bottom: 20px;
+
+  margin: 0 auto;
 }
 
-.todo-item {
-  display: flex;
-  align-items: center;
-  padding: 12px;
-  background: white;
-  margin-bottom: 8px;
-  border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+ul {
+  list-style: none;
+  padding: 0;
 }
 
-.checkbox {
-  margin-right: 10px;
-}
-
-.todo-text {
-  flex: 1;
-  font-size: 16px;
-}
-
-.completed .todo-text {
-  text-decoration: line-through;
-  color: #999;
-}
-
-.delete-btn {
-  background: none;
-  border: none;
-  color: #ff6b6b;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 0 8px;
-}
-
-.delete-btn:hover {
-  color: #ff5252;
-}
-
-.filter-buttons {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-}
-
-.filter-buttons button {
-  padding: 6px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: white;
-  cursor: pointer;
-}
-
-.filter-buttons button.active {
-  background: #42b983;
-  color: white;
-  border-color: #42b983;
+li {
+  margin-bottom: 0.5em;
 }
 </style>
